@@ -7,14 +7,14 @@ import javax.ws.rs.Path;
 
 /**
  * A very simple resource just to test server is up and running
- * 
+ *
  * @author jcounio
  */
 @ApplicationScoped
 @Path("/ping")
 public class PingResource {
 
-    @Inject 
+    @Inject
     MyInj inj;
 
     /**
@@ -22,7 +22,16 @@ public class PingResource {
      */
     @GET
     public String ping() {
-        return ""+inj.getString();
+        try {
+            if (inj == null) {
+                return "inj is null !";
+            }
+            return "" + inj.getString();
+        } catch (Exception e) {
+            //Capture to avoid Jersey to hide everything behind 500 error
+            e.printStackTrace();
+            return e.toString();
+        }
     }
 
 }

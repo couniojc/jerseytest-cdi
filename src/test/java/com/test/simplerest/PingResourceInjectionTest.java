@@ -5,21 +5,16 @@
  */
 package com.test.simplerest;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.context.RequestScoped;
+import com.test.simplerest.jersey.ext.CdiAwareJettyTestContainerFactory;
 import javax.inject.Inject;
 import javax.ws.rs.core.Application;
 import junit.framework.Assert;
-import org.apache.deltaspike.testcontrol.api.TestControl;
 import org.apache.deltaspike.testcontrol.api.junit.CdiTestRunner;
 import org.apache.deltaspike.testcontrol.api.mock.ApplicationMockManager;
-import org.apache.deltaspike.testcontrol.api.mock.DynamicMockManager;
 import org.easymock.EasyMock;
-import org.easymock.Mock;
 import org.easymock.MockType;
 
 import org.glassfish.jersey.test.JerseyTest;
-import org.jboss.weld.environment.se.Weld;
 import org.junit.Test;
 
 import org.junit.runner.RunWith;
@@ -28,23 +23,39 @@ import org.junit.runner.RunWith;
  * @author jcounio
  */
 @RunWith(CdiTestRunner.class)
-//@TestControl(startScopes = ApplicationScoped.class, startExternalContainers = true)
 public class PingResourceInjectionTest extends JerseyTest {
+ 
+    static
+    {
+        System.setProperty("jersey.config.test.container.factory", CdiAwareJettyTestContainerFactory.class.getName());
+    }    
     
     @Inject
     ApplicationMockManager applicationMockManager;
-    
-    MyInj injMock = EasyMock.createMock(MockType.NICE, MyInj.class);
-    
+
     @Override
     protected Application configure() {
         return new MyApp();
     }
-    
-    @Test
-    public void testPing() {
+
+   @Test
+    public void testPingWithNiceMock() {
+        //the nice mock will return null
+        MyInj injMock = EasyMock.createMock(MockType.NICE, MyInj.class);
         applicationMockManager.addMock(injMock);
         String resp = target("/ping").request().get(String.class);
         Assert.assertEquals("Ping", "null", resp);
-    }    
+    }
+    
+    @Test
+    public void testPingWithInstrumentedMock() {
+        MyInj injMock = EasyMock.createMock(MyInj.class);
+        applicationMockManager.addMock(injMock);
+        EasyMock.reset(injMock);
+        EasyMock.expect(injMock.getString()).andReturn("bbb");
+        EasyMock.replay(injMock);
+        String resp = target("/ping").request().get(String.class);
+        Assert.assertEquals("Ping", "bbb", resp);
+    }
+
 }

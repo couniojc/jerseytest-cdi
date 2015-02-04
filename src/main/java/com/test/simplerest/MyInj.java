@@ -13,6 +13,7 @@ import javax.enterprise.context.ApplicationScoped;
  */
 @ApplicationScoped
 public class MyInj {
+    
    String getString() {
        return "aaa";
    } 
