@@ -6,6 +6,7 @@
 package com.test.simplerest;
 
 import com.test.simplerest.jersey.ext.CdiAwareJettyTestContainerFactory;
+import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import javax.ws.rs.core.Application;
 import junit.framework.Assert;
@@ -32,29 +33,27 @@ public class PingResourceInjectionTest extends JerseyTest {
     
     @Inject
     ApplicationMockManager applicationMockManager;
-
+    
     @Override
     protected Application configure() {
         return new MyApp();
+        
     }
-
+    
    @Test
     public void testPingWithNiceMock() {
-        //the nice mock will return null
+        //Since the mock is injected as applicationScope, there's only one instance used.
+        //Be sure to work in the same test or pre-initialize the Mock behavior for all your tests
+        //Doing this in different tests/threads will fail
         MyInj injMock = EasyMock.createMock(MockType.NICE, MyInj.class);
         applicationMockManager.addMock(injMock);
         String resp = target("/ping").request().get(String.class);
         Assert.assertEquals("Ping", "null", resp);
-    }
-    
-    @Test
-    public void testPingWithInstrumentedMock() {
-        MyInj injMock = EasyMock.createMock(MyInj.class);
-        applicationMockManager.addMock(injMock);
+        //Reset mock for second call
         EasyMock.reset(injMock);
         EasyMock.expect(injMock.getString()).andReturn("bbb");
         EasyMock.replay(injMock);
-        String resp = target("/ping").request().get(String.class);
+        resp = target("/ping").request().get(String.class);
         Assert.assertEquals("Ping", "bbb", resp);
     }
 
