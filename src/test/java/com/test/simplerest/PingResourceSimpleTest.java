@@ -7,7 +7,7 @@ package com.test.simplerest;
 
 import com.test.simplerest.jersey.ext.CdiAwareJettyTestContainerFactory;
 import javax.ws.rs.core.Application;
-import junit.framework.Assert;
+import org.junit.Assert;
 import org.apache.deltaspike.testcontrol.api.junit.CdiTestRunner;
 import org.glassfish.jersey.test.JerseyTest;
 
